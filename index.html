@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Healthcare Prediction – Explainable AI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Poppins", sans-serif;
+      background: radial-gradient(circle at top left, #3b82f6 0, #0f172a 45%, #020617 100%);
+      color: #e5e7eb;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .app-shell {
+      max-width: 1100px;
+      width: 100%;
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.2fr);
+      gap: 24px;
+    }
+
+    @media (max-width: 900px) {
+      .app-shell {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 20px;
+      padding: 24px 26px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      backdrop-filter: blur(10px);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+
+    .title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .title span.logo-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: #ecfdf5;
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    .subtitle {
+      font-size: 0.9rem;
+      color: #9ca3af;
+    }
+
+    .badge {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      background: rgba(59, 130, 246, 0.12);
+      border-radius: 999px;
+      padding: 4px 10px;
+      border: 1px solid rgba(96, 165, 250, 0.5);
+      color: #bfdbfe;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.35);
+    }
+
+    label {
+      font-size: 0.9rem;
+      color: #e5e7eb;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 110px;
+      border-radius: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      background: rgba(15, 23, 42, 0.7);
+      color: #e5e7eb;
+      padding: 10px 12px;
+      resize: vertical;
+      outline: none;
+      font-family: inherit;
+      font-size: 0.9rem;
+      transition: border 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    }
+
+    textarea::placeholder {
+      color: #6b7280;
+    }
+
+    textarea:focus {
+      border-color: #60a5fa;
+      box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.6);
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .symptom-hint {
+      font-size: 0.75rem;
+      color: #9ca3af;
+      margin-top: 4px;
+    }
+
+    .chips-container {
+      margin-top: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(31, 41, 55, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      color: #e5e7eb;
+    }
+
+    .chip span.remove {
+      cursor: pointer;
+      font-weight: 600;
+      color: #f87171;
+    }
+
+    button {
+      margin-top: 16px;
+      padding: 11px 18px;
+      border-radius: 999px;
+      border: none;
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      color: white;
+      box-shadow: 0 12px 30px rgba(37, 99, 235, 0.45);
+      transition: transform 0.1s ease, box-shadow 0.1s ease, opacity 0.1s ease;
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 16px 36px rgba(37, 99, 235, 0.55);
+    }
+
+    button:active:not(:disabled) {
+      transform: translateY(0);
+      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-icon {
+      font-size: 1.05rem;
+    }
+
+    .loader {
+      border-radius: 999px;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(191, 219, 254, 0.5);
+      border-top-color: #eff6ff;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    #error-message {
+      margin-top: 12px;
+      font-size: 0.8rem;
+      white-space: pre-wrap;
+      color: #fecaca;
+      background: rgba(127, 29, 29, 0.25);
+      border-radius: 12px;
+      padding: 8px 10px;
+      border: 1px solid rgba(248, 113, 113, 0.6);
+    }
+
+    #result-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    #result-title {
+      font-size: 1.1rem;
+      font-weight: 500;
+    }
+
+    #result-subtitle {
+      font-size: 0.8rem;
+      color: #9ca3af;
+    }
+
+    .results-empty {
+      font-size: 0.85rem;
+      color: #9ca3af;
+      padding: 18px 10px;
+      text-align: center;
+    }
+
+    .top-disease-card {
+      margin-top: 10px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(22, 163, 74, 0.12), rgba(22, 163, 74, 0.03));
+      border: 1px solid rgba(74, 222, 128, 0.5);
+    }
+
+    .top-disease-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 4px;
+    }
+
+    .top-disease-name {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #bbf7d0;
+    }
+
+    .top-disease-confidence {
+      font-size: 0.85rem;
+      color: #86efac;
+    }
+
+    .pill-main {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(22, 163, 74, 0.2);
+      color: #bbf7d0;
+      border: 1px solid rgba(34, 197, 94, 0.7);
+    }
+
+    .cure-box {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px dashed rgba(52, 211, 153, 0.6);
+      font-size: 0.83rem;
+      color: #d1fae5;
+    }
+
+    .cure-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #6ee7b7;
+      margin-bottom: 4px;
+    }
+
+    .other-diseases {
+      margin-top: 14px;
+      font-size: 0.82rem;
+    }
+
+    .other-diseases-list {
+      margin-top: 6px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit,minmax(160px,1fr));
+      gap: 8px;
+    }
+
+    .other-disease-card {
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      padding: 8px 9px;
+    }
+
+    .other-name {
+      font-size: 0.83rem;
+      color: #e5e7eb;
+    }
+
+    .other-prob {
+      font-size: 0.75rem;
+      color: #9ca3af;
+      margin-top: 2px;
+    }
+
+    .other-tag {
+      margin-top: 4px;
+      display: inline-block;
+      font-size: 0.7rem;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: rgba(30, 64, 175, 0.35);
+      color: #bfdbfe;
+    }
+
+    .shap-section {
+      margin-top: 16px;
+      border-top: 1px solid rgba(55, 65, 81, 0.8);
+      padding-top: 12px;
+    }
+
+    .shap-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      color: #9ca3af;
+      margin-bottom: 6px;
+    }
+
+    .shap-img-wrapper {
+      max-height: 240px;
+      overflow: auto;
+      border-radius: 12px;
+      border: 1px solid rgba(75, 85, 99, 0.7);
+      background: rgba(15, 23, 42, 0.9);
+      padding: 6px;
+    }
+
+    .shap-img-wrapper img {
+      max-width: 100%;
+      border-radius: 10px;
+      display: block;
+    }
+
+    .shap-empty {
+      font-size: 0.8rem;
+      color: #6b7280;
+      padding: 8px;
+      text-align: center;
+    }
+
+    .tiny-tip {
+      font-size: 0.7rem;
+      color: #6b7280;
+      margin-top: 2px;
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- LEFT: INPUT CARD -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="title">
+          <span class="logo-pill">H</span>
+          <span>Healthcare Prediction</span>
+        </div>
+        <div class="subtitle">Symptom-based prediction with Explainable AI (SHAP)</div>
+      </div>
+      <div class="badge">
+        <span class="badge-dot"></span>
+        Live Model
+      </div>
+    </div>
+
+    <div>
+      <label for="symptoms">Enter your symptoms</label>
+      <textarea
+        id="symptoms"
+        placeholder="Example: fever, headache, small red spots, itching"></textarea>
+      <div class="symptom-hint">
+        Tip: Separate symptoms with commas. You can write in simple language (e.g., “itching”, “burning urination”).
+      </div>
+
+      <div id="chips" class="chips-container"></div>
+
+      <button id="predict-btn" onclick="predict()">
+        <span id="btn-icon" class="btn-icon">🔍</span>
+        <span id="btn-text">Predict Disease</span>
+      </button>
+
+      <div id="error-message" style="display:none;"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div id="result-card-header">
+      <div>
+        <div id="result-title">Prediction Results</div>
+        <div id="result-subtitle">Model + rules suggest likely diseases & explanation.</div>
+      </div>
+    </div>
+
+    <div id="result">
+      <div class="results-empty">
+        No prediction yet. Enter your symptoms on the left and click <b>Predict Disease</b>.
+      </div>
+    </div>
+
+    <div class="shap-section">
+      <div class="shap-header">
+        <span>Feature Contribution (SHAP)</span>
+      </div>
+      <div id="shap-container" class="shap-img-wrapper">
+        <div class="shap-empty">
+          SHAP explanation will appear here after a successful prediction.
+        </div>
+      </div>
+      <div class="tiny-tip">Note: This is for educational/demo purposes and not a medical diagnosis.</div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+  const textarea = document.getElementById("symptoms");
+  const chipsContainer = document.getElementById("chips");
+  const btn = document.getElementById("predict-btn");
+  const btnText = document.getElementById("btn-text");
+  const btnIcon = document.getElementById("btn-icon");
+  const errorBox = document.getElementById("error-message");
+  const resultDiv = document.getElementById("result");
+  const shapContainer = document.getElementById("shap-container");
+
+  let currentSymptoms = [];
+
+  function parseSymptomsFromTextarea() {
+    const raw = textarea.value.trim();
+    if (!raw) {
+      currentSymptoms = [];
+      renderChips();
+      return;
+    }
+    currentSymptoms = raw
+      .split(",")
+      .map(s => s.trim())
+      .filter(Boolean);
+    renderChips();
+  }
+
+  function renderChips() {
+    chipsContainer.innerHTML = "";
+    if (!currentSymptoms.length) return;
+
+    currentSymptoms.forEach((sym, idx) => {
+      const chip = document.createElement("div");
+      chip.className = "chip";
+      chip.innerHTML = `
+        <span>${sym}</span>
+        <span class="remove" title="Remove" onclick="removeSymptom(${idx})">×</span>
+      `;
+      chipsContainer.appendChild(chip);
+    });
+  }
+
+  function removeSymptom(index) {
+    currentSymptoms.splice(index, 1);
+    textarea.value = currentSymptoms.join(", ");
+    renderChips();
+  }
+
+  textarea.addEventListener("input", () => {
+    parseSymptomsFromTextarea();
+  });
+
+  function setLoading(isLoading) {
+    if (isLoading) {
+      btn.disabled = true;
+      btnText.textContent = "Predicting...";
+      btnIcon.innerHTML = "";
+      const loader = document.createElement("div");
+      loader.className = "loader";
+      btnIcon.appendChild(loader);
+    } else {
+      btn.disabled = false;
+      btnText.textContent = "Predict Disease";
+      btnIcon.textContent = "🔍";
+    }
+  }
+
+  function showError(message) {
+    errorBox.style.display = "block";
+    errorBox.textContent = message;
+  }
+
+  function clearError() {
+    errorBox.style.display = "none";
+    errorBox.textContent = "";
+  }
+
+  function predict() {
+    clearError();
+    resultDiv.innerHTML = "";
+    shapContainer.innerHTML = '<div class="shap-empty">Generating SHAP explanation…</div>';
+
+    let val = textarea.value.trim();
+    if (!val) {
+      alert("Please enter symptoms!");
+      shapContainer.innerHTML = `
+        <div class="shap-empty">
+          SHAP explanation will appear here after a successful prediction.
+        </div>`;
+      return;
+    }
+
+    const symptoms = val
+      .split(",")
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    setLoading(true);
+
+    fetch("/predict", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ symptoms: symptoms })
+    })
+    .then(res => {
+      if (!res.ok) {
+        throw new Error("Server responded with status " + res.status);
+      }
+      return res.json();
+    })
+    .then(data => {
+      setLoading(false);
+
+      if (data.error) {
+        showError("An error occurred:\n" + data.error);
+        resultDiv.innerHTML = `
+          <div class="results-empty">
+            Could not generate prediction. Please check console/logs.
+          </div>`;
+        shapContainer.innerHTML = `
+          <div class="shap-empty">
+            SHAP explanation will appear here after a successful prediction.
+          </div>`;
+        return;
+      }
+
+      if (!data.top3 || !data.top3.length) {
+        resultDiv.innerHTML = `
+          <div class="results-empty">
+            Model did not return any predictions. Try adding more symptoms.
+          </div>`;
+        shapContainer.innerHTML = `
+          <div class="shap-empty">
+            SHAP explanation will appear here after a successful prediction.
+          </div>`;
+        return;
+      }
+
+      // Build results UI
+      const top = data.top3[0];
+      const others = data.top3.slice(1);
+
+      let html = "";
+
+      html += `
+        <div class="top-disease-card">
+          <div class="top-disease-header">
+            <div class="top-disease-name">${top.label}</div>
+            <div class="top-disease-confidence">${(top.prob * 100).toFixed(1)}% confidence</div>
+          </div>
+          <span class="pill-main">Most likely condition</span>
+          <div class="cure-box">
+            <div class="cure-label">Suggested Care</div>
+            <div>${data.cures || "Rest, hydration, consult doctor"}</div>
+          </div>
+        </div>
+      `;
+
+      if (others.length) {
+        html += `
+          <div class="other-diseases">
+            <div>Other possible conditions:</div>
+            <div class="other-diseases-list">
+        `;
+        others.forEach(d => {
+          html += `
+            <div class="other-disease-card">
+              <div class="other-name">${d.label}</div>
+              <div class="other-prob">Confidence: ${(d.prob * 100).toFixed(1)}%</div>
+              <span class="other-tag">Model suggestion</span>
+            </div>
+          `;
+        });
+        html += `
+            </div>
+          </div>
+        `;
+      }
+
+      resultDiv.innerHTML = html;
+
+      // SHAP image
+      if (data.shap_plot) {
+        shapContainer.innerHTML = `
+          <img id="shap-image" src="data:image/png;base64,${data.shap_plot}" alt="SHAP Explanation Plot" />
+        `;
+      } else {
+        shapContainer.innerHTML = `
+          <div class="shap-empty">
+            SHAP explanation could not be generated for this prediction.
+          </div>`;
+      }
+    })
+    .catch(err => {
+      setLoading(false);
+      showError("Network error:\n" + err.message);
+      resultDiv.innerHTML = `
+        <div class="results-empty">
+          Network error occurred. Please try again.
+        </div>`;
+      shapContainer.innerHTML = `
+        <div class="shap-empty">
+          SHAP explanation will appear here after a successful prediction.
+        </div>`;
+    });
+  }
+</script>
+
+</body>
+</html>
