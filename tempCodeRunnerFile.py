@@ -1,0 +1,1 @@
+itching", "rash", "red spots", "fever", "body ache"
